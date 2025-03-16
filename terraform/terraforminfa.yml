@@ -1,0 +1,40 @@
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "jenkins_server" {
+  ami           = "ami-0c55b159cbfafe1f0"  # Replace with latest AMI
+  instance_type = "t2.medium"
+  key_name      = "my-key-pair"
+  security_groups = ["jenkins-security-group"]
+
+  tags = {
+    Name = "JenkinsServer"
+  }
+}
+
+resource "aws_security_group" "jenkins_sg" {
+  name        = "jenkins-security-group"
+  description = "Allow inbound traffic for Jenkins"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
