@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "myapp"
+        REGISTRY = "docker.io/username"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/your-repo/myapp.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'docker build -t $REGISTRY/$IMAGE_NAME:latest .'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'pytest tests/'
+            }
+        }
+
+        stage('Push to Registry') {
+            steps {
+                withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_PASSWORD')]) {
+                    sh 'echo $DOCKER_PASSWORD | docker login -u username --password-stdin'
+                    sh 'docker push $REGISTRY/$IMAGE_NAME:latest'
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh 'kubectl apply -f k8s/deployment.yaml'
+            }
+        }
+    }
+}
