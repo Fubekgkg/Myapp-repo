@@ -1,0 +1,36 @@
+- name: Install and configure Jenkins
+  hosts: jenkins
+  become: yes
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - openjdk-11-jdk
+          - wget
+          - git
+        state: present
+        update_cache: yes
+
+    - name: Add Jenkins repository key
+      shell: wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
+
+    - name: Add Jenkins repository
+      shell: echo "deb http://pkg.jenkins.io/debian-stable binary/" | tee /etc/apt/sources.list.d/jenkins.list
+
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+        update_cache: yes
+
+    - name: Start and enable Jenkins service
+      systemd:
+        name: jenkins
+        enabled: yes
+        state: started
+
+    - name: Open firewall for Jenkins
+      ufw:
+        rule: allow
+        port: 8080
+        proto: tcp
